@@ -15,6 +15,5 @@ workflows:
              branches:
                only:
                  - master
-      build:
         jobs:
             - cypress/run # "run" job comes from "cypress" orb
