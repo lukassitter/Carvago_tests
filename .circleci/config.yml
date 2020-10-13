@@ -1,19 +1,38 @@
-language: node_js
-node_js:
-  - 10
-addons:
-  apt:
-    packages:
-      # Ubuntu 16+ does not install this dependency by default, so we need to install it ourselves
-      - libgconf-2-4
-cache:
-  # Caches $HOME/.npm when npm ci is default script command
-  # Caches node_modules in all other cases
-  npm: true
-  directories:
-    # we also need to cache folder with Cypress binary
-    - ~/.cache
-install:
-  - npm ci
-script:
-  - $(npm bin)/cypress run --record
+version: 2.1
+orbs:
+  circleci-cli: circleci/circleci-cli@0.1.8
+jobs:
+  build:
+    docker:
+      - image: cypress/included:5.3.0
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run: npm ci
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+      # we need to install CircleCI CLI tool
+      # to run the "manual" tests
+      - circleci-cli/install
+      - run: npm test
+      - run: npm run manual:tests
+      - run: npm run docs
+
+workflows:
+  orb_tests:
+    jobs:
+    - build
