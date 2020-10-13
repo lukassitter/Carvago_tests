@@ -6,6 +6,15 @@ orbs:
   # to lock the version and prevent unexpected CI changes
   cypress: cypress-io/cypress@1
 workflows:
-  build:
-    jobs:
-      - cypress/run # "run" job comes from "cypress" orb
+   version: 2
+   nightly:
+     triggers:
+       - schedule:
+           cron: "0 0 * * *"
+           filters:
+             branches:
+               only:
+                 - master
+      build:
+        jobs:
+            - cypress/run # "run" job comes from "cypress" orb
